@@ -24,7 +24,7 @@ const DEFAULT_TRIP = {
   location: DEFAULT_LOCATION,
   startDate: "2027-07-16",
   endDate: "2027-07-31",
-  activities: ["safari"],
+  activities: ["outdoors"],
 };
 
 function daysBetween(start, end) {

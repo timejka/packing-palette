@@ -2,13 +2,16 @@
 // the weather summary, and any selected activities.
 
 export const ACTIVITY_OPTIONS = [
-  { id: "safari", label: "Safari / wildlife viewing" },
-  { id: "hiking", label: "Hiking" },
-  { id: "swimming", label: "Swimming / beach" },
-  { id: "business", label: "Business / formal" },
-  { id: "photography", label: "Photography" },
-  { id: "cold", label: "Cold weather / snow" },
+  { id: "beach", label: "Beach" },
+  { id: "pool", label: "Pool & resort" },
   { id: "city", label: "City sightseeing" },
+  { id: "daytrip", label: "Day trip" },
+  { id: "leisure", label: "Leisure" },
+  { id: "outdoors", label: "Outdoors" },
+  { id: "spa", label: "Spa & wellness" },
+  { id: "nightlife", label: "Nightlife" },
+  { id: "event", label: "Elegant event" },
+  { id: "workout", label: "Workout" },
 ];
 
 function launderEvery(days) {
@@ -73,58 +76,89 @@ export function generatePackingList({ days, weather, activities = [] }) {
   ];
   categories.push({ name: "Electronics & documents", items: electronics });
 
-  // Activity-specific gear
+  // Activity-specific gear. A few water-based activities share the base
+  // "Swimsuit" reminder, but every activity also contributes at least one
+  // item found nowhere else in the list.
   const activityItems = [];
-  if (activities.includes("safari")) {
-    activityItems.push(
-      { item: "Binoculars", qty: 1 },
-      { item: "Neutral-colored clothing (khaki/olive, avoid bright white, black & blue)", qty: 1 },
-      { item: "Zoom lens camera", qty: 1 },
-      { item: "Malaria prophylaxis (check destination risk)", qty: 1 },
-    );
-  }
-  if (activities.includes("hiking")) {
-    activityItems.push(
-      { item: "Hiking boots", qty: 1 },
-      { item: "Daypack", qty: 1 },
-      { item: "Moisture-wicking hiking socks (pairs)", qty: Math.min(cycle, days) },
-    );
-  }
-  if (activities.includes("swimming")) {
+  if (activities.includes("beach")) {
     activityItems.push(
       { item: "Swimsuit", qty: 2 },
-      { item: "Quick-dry towel", qty: 1 },
-      { item: "Flip-flops / sandals", qty: 1 },
+      { item: "Beach towel (quick-dry, sand-resistant)", qty: 1 },
+      { item: "Flip-flops", qty: 1 },
     );
   }
-  if (activities.includes("business")) {
+  if (activities.includes("pool")) {
     activityItems.push(
-      { item: "Formal outfit", qty: Math.max(1, Math.ceil(days / 3)) },
-      { item: "Dress shoes", qty: 1 },
-    );
-  }
-  if (activities.includes("photography")) {
-    activityItems.push(
-      { item: "Extra camera batteries", qty: 2 },
-      { item: "Memory cards", qty: 2 },
-      { item: "Lens cloth", qty: 1 },
-    );
-  }
-  if (activities.includes("cold")) {
-    activityItems.push(
-      { item: "Insulated waterproof jacket", qty: 1 },
-      { item: "Thermal socks (pairs)", qty: 3 },
-      { item: "Hand warmers", qty: 4 },
+      { item: "Swimsuit", qty: 2 },
+      { item: "Swim cover-up / kaftan", qty: 1 },
+      { item: "Pool slides", qty: 1 },
     );
   }
   if (activities.includes("city")) {
     activityItems.push(
-      { item: "Crossbody / anti-theft bag", qty: 1 },
-      { item: "Comfortable everyday shoes", qty: 1 },
+      { item: "Anti-theft crossbody bag", qty: 1 },
+      { item: "Offline maps or printed transit passes", qty: 1 },
+    );
+  }
+  if (activities.includes("daytrip")) {
+    activityItems.push(
+      { item: "Packable foldable tote bag", qty: 1 },
+      { item: "Reusable snack container", qty: 1 },
+      { item: "Printed tickets & reservations folder", qty: 1 },
+    );
+  }
+  if (activities.includes("leisure")) {
+    activityItems.push(
+      { item: "Paperback book or e-reader", qty: 1 },
+      { item: "Comfortable loungewear", qty: 2 },
+      { item: "Travel pillow", qty: 1 },
+    );
+  }
+  if (activities.includes("outdoors")) {
+    activityItems.push(
+      { item: "Multi-tool / pocket knife", qty: 1 },
+      { item: "Lightweight daypack", qty: 1 },
+      { item: "Compact rain poncho", qty: 1 },
+    );
+  }
+  if (activities.includes("spa")) {
+    activityItems.push(
+      { item: "Swimsuit", qty: 2 },
+      { item: "Lightweight robe or wrap", qty: 1 },
+      { item: "Reusable makeup remover pads", qty: 1 },
+    );
+  }
+  if (activities.includes("nightlife")) {
+    activityItems.push(
+      { item: "Going-out outfit", qty: Math.max(1, Math.ceil(days / 4)) },
+      { item: "Statement accessories (jewelry/clutch)", qty: 1 },
+      { item: "Blister plasters (for heels/dancing)", qty: 1 },
+    );
+  }
+  if (activities.includes("event")) {
+    activityItems.push(
+      { item: "Formal outfit (suit or gown)", qty: Math.max(1, Math.ceil(days / 5)) },
+      { item: "Dress shoes", qty: 1 },
+      { item: "Small clutch or evening bag", qty: 1 },
+    );
+  }
+  if (activities.includes("workout")) {
+    activityItems.push(
+      { item: "Workout / athletic wear", qty: Math.max(2, Math.ceil(days / 3)) },
+      { item: "Running shoes", qty: 1 },
+      { item: "Reusable gym towel", qty: 1 },
     );
   }
   if (activityItems.length > 0) {
-    categories.push({ name: "Activity gear", items: activityItems });
+    // A few activities (beach/pool/spa) share reminders like "Swimsuit" —
+    // dedupe by item name so selecting more than one doesn't repeat a row.
+    const seen = new Set();
+    const dedupedItems = activityItems.filter(({ item }) => {
+      if (seen.has(item)) return false;
+      seen.add(item);
+      return true;
+    });
+    categories.push({ name: "Activity gear", items: dedupedItems });
   }
 
   return categories;
