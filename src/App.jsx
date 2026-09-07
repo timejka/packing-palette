@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import TripForm from "./components/TripForm";
 import TravelPass from "./components/TravelPass";
 import PackingList from "./components/PackingList";
+import StarField from "./components/StarField";
+import CatIcon from "./components/icons/CatIcon";
 import { getWeatherSummary, getFallbackWeatherEstimate } from "./lib/weather";
 import { getDestinationImages } from "./lib/images";
 import { getFallbackPalette } from "./lib/palette";
@@ -82,46 +84,52 @@ export default function App() {
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <span className="eyebrow">A field guide to packing</span>
-        <h1>Packing Palette</h1>
-        <p className="app-tagline">
-          Search a place, pick your dates — get the weather, the palette, and the list.
-        </p>
-      </header>
-
-      <main className="app-main">
-        <TripForm
-          trip={trip}
-          onChange={setTrip}
-          onSubmit={handleSubmit}
-          formError={formError}
-          submitting={status === "loading"}
-        />
-
-        {status === "loading" && (
-          <p className="status-message">Fetching live weather and destination photos…</p>
-        )}
-        {status === "error" && (
-          <p className="status-message status-error">
-            Something went wrong building your packing list. Please try again.
+    <>
+      <StarField />
+      <div className="app">
+        <header className="app-header">
+          <span className="eyebrow">A field guide to packing</span>
+          <h1>
+            <CatIcon className="header-mark" size={30} />
+            Packing Palette
+          </h1>
+          <p className="app-tagline">
+            Search a place, pick your dates — get the weather, the palette, and the list.
           </p>
-        )}
+        </header>
 
-        {result && status === "ready" && (
-          <section className="results">
-            <TravelPass
-              days={result.days}
-              locationLabel={result.locationLabel}
-              weather={result.weather}
-              images={result.images}
-              fallbackPalette={result.fallbackPalette}
-            />
-            <PackingList categories={result.packingList} />
-          </section>
-        )}
-      </main>
-    </div>
+        <main className="app-main">
+          <TripForm
+            trip={trip}
+            onChange={setTrip}
+            onSubmit={handleSubmit}
+            formError={formError}
+            submitting={status === "loading"}
+          />
+
+          {status === "loading" && (
+            <p className="status-message">Fetching live weather and destination photos…</p>
+          )}
+          {status === "error" && (
+            <p className="status-message status-error">
+              Something went wrong building your packing list. Please try again.
+            </p>
+          )}
+
+          {result && status === "ready" && (
+            <section className="results">
+              <TravelPass
+                days={result.days}
+                locationLabel={result.locationLabel}
+                weather={result.weather}
+                images={result.images}
+                fallbackPalette={result.fallbackPalette}
+              />
+              <PackingList categories={result.packingList} />
+            </section>
+          )}
+        </main>
+      </div>
+    </>
   );
 }

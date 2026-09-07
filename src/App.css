@@ -1,4 +1,19 @@
+.star-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  fill: var(--star-color);
+}
+
 .app {
+  position: relative;
+  z-index: 1;
   max-width: 760px;
   margin: 0 auto;
   padding: 48px 20px 96px;
@@ -14,9 +29,17 @@
 }
 
 .app-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 34px;
   letter-spacing: -0.3px;
   margin-top: 2px;
+}
+
+.header-mark {
+  color: var(--pink-deep);
+  flex-shrink: 0;
 }
 
 .app-tagline {
@@ -75,7 +98,9 @@
   border-radius: 10px;
   padding: 11px 14px;
   font-size: 15px;
-  background: var(--paper);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--ink);
   font-family: var(--sans);
 }
@@ -94,14 +119,31 @@
 /* ---------- trip form ---------- */
 
 .trip-form {
+  position: relative;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--glass-highlight);
+  border-radius: 24px;
   padding: 28px;
   box-shadow: var(--shadow-quiet);
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.trip-form::before,
+.pass-card::before,
+.packing-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(90deg, var(--pink-deep), var(--purple-deep), var(--gold));
+  opacity: 0.85;
 }
 
 .trip-form-head h2 {
@@ -117,7 +159,7 @@
 
 .chip {
   border: 1px solid var(--line);
-  background: var(--paper);
+  background: rgba(255, 255, 255, 0.4);
   color: var(--ink-soft);
   border-radius: 999px;
   padding: 7px 14px;
@@ -127,9 +169,9 @@
 }
 
 .chip-active {
-  background: var(--purple-deep);
+  background: linear-gradient(135deg, var(--purple-deep), var(--pink-deep));
   border-color: var(--purple-deep);
-  color: var(--surface);
+  color: var(--surface-solid);
 }
 
 .trip-form-actions {
@@ -139,8 +181,11 @@
 }
 
 .submit-btn {
-  background: var(--pink-deep);
-  color: var(--surface);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--pink-deep), var(--purple-deep));
+  color: var(--surface-solid);
   border: none;
   border-radius: 999px;
   padding: 12px 26px;
@@ -148,6 +193,11 @@
   font-weight: 600;
   cursor: pointer;
   font-family: var(--sans);
+  box-shadow: 0 10px 24px -8px rgba(182, 70, 122, 0.55);
+}
+
+.submit-btn-icon {
+  flex-shrink: 0;
 }
 
 .submit-btn:hover {
@@ -190,8 +240,10 @@
   padding: 6px;
   list-style: none;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid var(--glass-highlight);
+  border-radius: 14px;
   box-shadow: var(--shadow-quiet);
   max-height: 280px;
   overflow-y: auto;
@@ -258,9 +310,12 @@
 /* ---------- travel pass card ---------- */
 
 .pass-card {
+  position: relative;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--glass-highlight);
+  border-radius: 24px;
   box-shadow: var(--shadow-quiet);
 }
 
@@ -278,10 +333,12 @@
 }
 
 .pass-stamp {
+  position: relative;
   width: 62px;
   height: 62px;
   border-radius: 50%;
   border: 1.5px dashed var(--pink-deep);
+  background: rgba(255, 255, 255, 0.35);
   color: var(--pink-deep);
   display: flex;
   flex-direction: column;
@@ -289,6 +346,29 @@
   justify-content: center;
   transform: rotate(-8deg);
   flex-shrink: 0;
+}
+
+/* little cat ears peeking above the stamp */
+.pass-stamp::before,
+.pass-stamp::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 10px solid var(--pink-deep);
+}
+
+.pass-stamp::before {
+  left: 7px;
+  transform: rotate(-18deg);
+}
+
+.pass-stamp::after {
+  right: 7px;
+  transform: rotate(18deg);
 }
 
 .pass-stamp-value {
@@ -324,7 +404,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: rgba(251, 248, 242, 0.85);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(6px);
   color: var(--ink);
   font-size: 12px;
@@ -350,7 +430,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--paper);
+  background: var(--bg-mid);
   border: 1px solid var(--line);
   transform: translateY(-50%);
 }
@@ -460,7 +540,7 @@
   position: absolute;
   top: 8px;
   left: 8px;
-  background: rgba(251, 248, 242, 0.85);
+  background: rgba(255, 255, 255, 0.82);
   color: var(--ink-soft);
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -510,9 +590,12 @@
 /* ---------- packing list ---------- */
 
 .packing-card {
+  position: relative;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--glass-highlight);
+  border-radius: 24px;
   padding: 24px 28px 28px;
   box-shadow: var(--shadow-quiet);
 }
@@ -585,7 +668,7 @@
   cursor: pointer;
 }
 
-.packing-category label span:first-of-type {
+.packing-category .item-label {
   flex: 1;
   text-align: left;
   color: var(--ink);
@@ -605,37 +688,43 @@
   border-radius: 999px;
 }
 
-.packing-category input[type="checkbox"] {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid var(--line);
-  border-radius: 5px;
-  background: var(--paper);
-  display: inline-grid;
-  place-content: center;
-  cursor: pointer;
+.checkbox-shell {
+  position: relative;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
+  display: inline-flex;
+}
+
+.checkbox-shell input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
   margin: 0;
 }
 
-.packing-category input[type="checkbox"]::before {
-  content: "";
-  width: 9px;
-  height: 9px;
-  transform: scale(0);
-  transition: transform 0.1s ease;
-  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-  background-color: var(--surface);
-}
-
-.packing-category input[type="checkbox"]:checked {
+.checkbox-shell input[type="checkbox"]:checked {
   background: var(--sage-deep);
   border-color: var(--sage-deep);
 }
 
-.packing-category input[type="checkbox"]:checked::before {
-  transform: scale(1);
+.paw-mark {
+  position: absolute;
+  inset: 3px;
+  width: 14px;
+  height: 14px;
+  color: var(--surface-solid);
+  transform: scale(0) rotate(-12deg);
+  transition: transform 0.16s ease;
+  pointer-events: none;
+}
+
+.checkbox-shell input[type="checkbox"]:checked + .paw-mark {
+  transform: scale(1) rotate(-12deg);
 }
 
 /* ---------- responsive ---------- */

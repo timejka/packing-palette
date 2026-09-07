@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PawIcon from "./icons/PawIcon";
 
 export default function PackingList({ categories }) {
   const [checked, setChecked] = useState({});
@@ -33,8 +34,11 @@ export default function PackingList({ categories }) {
               return (
                 <li key={key}>
                   <label>
-                    <input type="checkbox" checked={!!checked[key]} onChange={() => toggle(key)} />
-                    <span className={checked[key] ? "item-checked" : ""}>{item.item}</span>
+                    <span className="checkbox-shell">
+                      <input type="checkbox" checked={!!checked[key]} onChange={() => toggle(key)} />
+                      <PawIcon className="paw-mark" />
+                    </span>
+                    <span className={`item-label ${checked[key] ? "item-checked" : ""}`}>{item.item}</span>
                     <span className="item-qty">×{item.qty}</span>
                   </label>
                 </li>

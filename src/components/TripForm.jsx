@@ -1,4 +1,5 @@
 import LocationAutocomplete from "./LocationAutocomplete";
+import CatIcon from "./icons/CatIcon";
 import { ACTIVITY_OPTIONS } from "../lib/packingList";
 
 export default function TripForm({ trip, onChange, onSubmit, formError, submitting }) {
@@ -86,6 +87,7 @@ export default function TripForm({ trip, onChange, onSubmit, formError, submitti
 
       <div className="trip-form-actions">
         <button type="submit" className="submit-btn" disabled={submitting}>
+          <CatIcon className="submit-btn-icon" size={16} />
           {submitting ? "Building…" : "Build my packing list"}
         </button>
       </div>
