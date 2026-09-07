@@ -1,29 +1,34 @@
 import { useImagePalette } from "../hooks/useImagePalette";
 import { nameForColor } from "../lib/colorNaming";
 
-export default function DestinationImageCard({ image }) {
+export default function DestinationImageCard({ image, index }) {
   const { status, palette } = useImagePalette(image.thumbUrl, 4);
 
   return (
-    <figure className="gallery-item">
-      <img src={image.thumbUrl} alt={image.title} loading="lazy" />
+    <figure className="specimen">
+      <span className="specimen-index">{String(index).padStart(2, "0")}</span>
+      <img className="specimen-thumb" src={image.thumbUrl} alt={image.title} loading="lazy" />
       <figcaption>
         <a href={image.descriptionUrl} target="_blank" rel="noopener noreferrer">
           {image.title}
         </a>
-        {image.artist && <span className="gallery-attribution"> · {image.artist}</span>}
       </figcaption>
-      {status === "loading" && <p className="gallery-status">Extracting colors…</p>}
-      {status === "error" && <p className="gallery-status">Couldn't extract colors from this photo.</p>}
+      {status === "loading" && <p className="specimen-status">Extracting colors…</p>}
+      {status === "error" && <p className="specimen-status">No colors extracted.</p>}
       {status === "ready" && (
-        <div className="mini-swatches">
-          {palette.map((hex) => (
-            <div className="mini-swatch" key={hex} title={`${nameForColor(hex)} — ${hex}`}>
-              <div className="mini-swatch-color" style={{ backgroundColor: hex }} />
-              <span>{nameForColor(hex)}</span>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="swatch-strip swatch-strip-sm">
+            {palette.map((hex) => (
+              <div
+                className="swatch-bar"
+                key={hex}
+                style={{ backgroundColor: hex }}
+                title={`${nameForColor(hex)} — ${hex}`}
+              />
+            ))}
+          </div>
+          <p className="specimen-color-names">{palette.map(nameForColor).join(" · ")}</p>
+        </>
       )}
     </figure>
   );

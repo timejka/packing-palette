@@ -20,8 +20,15 @@ export default function TripForm({ trip, onChange, onSubmit, formError, submitti
         if (!dateError) onSubmit();
       }}
     >
+      <div className="trip-form-head">
+        <span className="eyebrow">Plan a trip</span>
+        <h2>Where to, and when?</h2>
+      </div>
+
       <div className="field">
-        <label htmlFor="location">Where are you going?</label>
+        <label htmlFor="location" className="field-label">
+          Destination
+        </label>
         <LocationAutocomplete
           id="location"
           value={trip.location}
@@ -31,7 +38,9 @@ export default function TripForm({ trip, onChange, onSubmit, formError, submitti
 
       <div className="field-row">
         <div className="field">
-          <label htmlFor="startDate">Start date</label>
+          <label htmlFor="startDate" className="field-label">
+            Depart
+          </label>
           <input
             id="startDate"
             type="date"
@@ -41,7 +50,9 @@ export default function TripForm({ trip, onChange, onSubmit, formError, submitti
           />
         </div>
         <div className="field">
-          <label htmlFor="endDate">End date</label>
+          <label htmlFor="endDate" className="field-label">
+            Return
+          </label>
           <input
             id="endDate"
             type="date"
@@ -54,7 +65,9 @@ export default function TripForm({ trip, onChange, onSubmit, formError, submitti
       {dateError && <p className="error">End date must be after start date.</p>}
 
       <div className="field">
-        <label>Activities (optional)</label>
+        <span className="field-label">
+          Activities <span className="field-label-optional">(optional)</span>
+        </span>
         <div className="activity-chips">
           {ACTIVITY_OPTIONS.map((opt) => (
             <button
@@ -71,9 +84,11 @@ export default function TripForm({ trip, onChange, onSubmit, formError, submitti
 
       {formError && <p className="error">{formError}</p>}
 
-      <button type="submit" className="submit-btn" disabled={submitting}>
-        {submitting ? "Building your list…" : "Build my packing list"}
-      </button>
+      <div className="trip-form-actions">
+        <button type="submit" className="submit-btn" disabled={submitting}>
+          {submitting ? "Building…" : "Build my packing list"}
+        </button>
+      </div>
     </form>
   );
 }

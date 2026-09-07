@@ -11,28 +11,30 @@ export default function PackingList({ categories }) {
   const checkedCount = Object.values(checked).filter(Boolean).length;
 
   return (
-    <div className="card packing-card">
+    <div className="packing-card">
       <div className="packing-header">
-        <h2>Packing list</h2>
-        <span className="packing-progress">{checkedCount} / {totalItems} packed</span>
+        <div>
+          <span className="eyebrow">Field guide</span>
+          <h2>Packing list</h2>
+        </div>
+        <span className="packing-progress">
+          {checkedCount} / {totalItems} packed
+        </span>
       </div>
-      {categories.map((category) => (
+      {categories.map((category, i) => (
         <div className="packing-category" key={category.name}>
-          <h3>{category.name}</h3>
+          <div className="packing-category-head">
+            <span className="specimen-index">{String(i + 1).padStart(2, "0")}</span>
+            <h3>{category.name}</h3>
+          </div>
           <ul>
             {category.items.map((item) => {
               const key = `${category.name}-${item.item}`;
               return (
                 <li key={key}>
                   <label>
-                    <input
-                      type="checkbox"
-                      checked={!!checked[key]}
-                      onChange={() => toggle(key)}
-                    />
-                    <span className={checked[key] ? "item-checked" : ""}>
-                      {item.item}
-                    </span>
+                    <input type="checkbox" checked={!!checked[key]} onChange={() => toggle(key)} />
+                    <span className={checked[key] ? "item-checked" : ""}>{item.item}</span>
                     <span className="item-qty">×{item.qty}</span>
                   </label>
                 </li>

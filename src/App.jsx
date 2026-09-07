@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import TripForm from "./components/TripForm";
-import WeatherSummary from "./components/WeatherSummary";
-import DestinationGallery from "./components/DestinationGallery";
+import TravelPass from "./components/TravelPass";
 import PackingList from "./components/PackingList";
 import { getWeatherSummary, getFallbackWeatherEstimate } from "./lib/weather";
 import { getDestinationImages } from "./lib/images";
@@ -85,8 +84,11 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
+        <span className="eyebrow">A field guide to packing</span>
         <h1>Packing Palette</h1>
-        <p>Tell us where and when you're headed — we'll sort out the weather, the vibe, and what to pack.</p>
+        <p className="app-tagline">
+          Search a place, pick your dates — get the weather, the palette, and the list.
+        </p>
       </header>
 
       <main className="app-main">
@@ -109,13 +111,13 @@ export default function App() {
 
         {result && status === "ready" && (
           <section className="results">
-            <p className="trip-length">
-              {result.days}-day trip to {result.locationLabel}
-            </p>
-            <div className="results-grid">
-              <WeatherSummary weather={result.weather} />
-              <DestinationGallery images={result.images} fallbackPalette={result.fallbackPalette} />
-            </div>
+            <TravelPass
+              days={result.days}
+              locationLabel={result.locationLabel}
+              weather={result.weather}
+              images={result.images}
+              fallbackPalette={result.fallbackPalette}
+            />
             <PackingList categories={result.packingList} />
           </section>
         )}

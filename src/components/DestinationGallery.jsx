@@ -3,17 +3,14 @@ import DestinationImageCard from "./DestinationImageCard";
 export default function DestinationGallery({ images, fallbackPalette }) {
   if (!images || images.length === 0) {
     return (
-      <div className="card gallery-card">
-        <h2>Destination palette</h2>
-        <p className="gallery-subtitle">
+      <div className="palette-panel">
+        <span className="eyebrow">Palette</span>
+        <p className="palette-empty-note">
           No destination photos found — here's a palette estimated from the place name instead.
         </p>
-        <div className="swatches">
+        <div className="swatch-strip">
           {(fallbackPalette || []).map((hex) => (
-            <div className="swatch" key={hex}>
-              <div className="swatch-color" style={{ backgroundColor: hex }} />
-              <span className="swatch-hex">{hex}</span>
-            </div>
+            <div className="swatch-bar" key={hex} style={{ backgroundColor: hex }} title={hex} />
           ))}
         </div>
       </div>
@@ -21,12 +18,11 @@ export default function DestinationGallery({ images, fallbackPalette }) {
   }
 
   return (
-    <div className="card gallery-card">
-      <h2>Destination palette</h2>
-      <p className="gallery-subtitle">Colors pulled straight from real photos of your destination.</p>
-      <div className="gallery-grid">
-        {images.map((image) => (
-          <DestinationImageCard key={image.thumbUrl} image={image} />
+    <div className="palette-panel">
+      <span className="eyebrow">Palette</span>
+      <div className="specimen-row">
+        {images.map((image, i) => (
+          <DestinationImageCard key={image.thumbUrl} image={image} index={i + 1} />
         ))}
       </div>
     </div>
