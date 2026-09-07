@@ -60,11 +60,24 @@ function toDestinationImage(page) {
  * Biases toward scenic/landscape shots first (more editorial, less likely to
  * be a random document scan or portrait), falling back to a plain place-name
  * search if that's too narrow for a given destination.
+ *
+ * Both queries rely on Commons search (CirrusSearch) treating bare,
+ * space-separated terms as AND — every term must match. Do NOT introduce a
+ * bare `OR` here: CirrusSearch breaks the implicit AND grouping at that
+ * point, turning trailing terms into independent top-level clauses. E.g.
+ * `Seoul South Korea landscape OR scenery OR skyline` stops requiring "Seoul"
+ * for the "skyline" branch, so it also matches any unrelated photo anywhere
+ * on Commons whose title merely contains the word "skyline" (Prague,
+ * Frankfurt, Jersey City, ...). If a future change wants an OR of
+ * descriptors, it must be parenthesized *and* the place name must be
+ * required on every branch, e.g. `+"Seoul" +"South Korea" (landscape OR
+ * scenery OR skyline)` — and that should be verified against the live API
+ * before shipping, since query-string parsing quirks are easy to get wrong.
  */
 export async function getDestinationImages(location, count = 3) {
   const place = [location.name, location.country].filter(Boolean).join(" ");
 
-  const scenic = await searchUsableImages(`${place} landscape OR scenery OR skyline`);
+  const scenic = await searchUsableImages(`${place} landscape`);
   if (scenic.length >= count) {
     return scenic.slice(0, count).map(toDestinationImage);
   }
