@@ -353,22 +353,21 @@
 .pass-stamp::after {
   content: "";
   position: absolute;
-  top: -6px;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 10px solid var(--pink-deep);
+  top: -10px;
+  width: 14px;
+  height: 18px;
+  background: var(--pink-deep);
+  border-radius: 65% 65% 40% 40%;
 }
 
 .pass-stamp::before {
-  left: 7px;
-  transform: rotate(-18deg);
+  left: 3px;
+  transform: rotate(-24deg);
 }
 
 .pass-stamp::after {
-  right: 7px;
-  transform: rotate(18deg);
+  right: 3px;
+  transform: rotate(24deg);
 }
 
 .pass-stamp-value {
