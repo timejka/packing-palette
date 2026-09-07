@@ -24,12 +24,7 @@ function stripHtml(html) {
   return text || undefined;
 }
 
-/**
- * Returns up to `count` real, iconic photos for a destination, each with a
- * thumbnail URL suitable for both display and client-side palette extraction.
- */
-export async function getDestinationImages(location, count = 3) {
-  const query = [location.name, location.country].filter(Boolean).join(" ");
+async function searchUsableImages(query) {
   const url =
     `${ENDPOINT}?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}` +
     `&gsrnamespace=6&gsrlimit=25&prop=imageinfo&iiprop=url|size|mime|extmetadata` +
@@ -42,20 +37,41 @@ export async function getDestinationImages(location, count = 3) {
   const data = await res.json();
   const pages = Object.values(data.query?.pages || {});
 
-  const usable = pages
-    .filter(isUsableImage)
-    .sort((a, b) => (a.index ?? 999) - (b.index ?? 999));
+  return pages.filter(isUsableImage).sort((a, b) => (a.index ?? 999) - (b.index ?? 999));
+}
 
-  return usable.slice(0, count).map((page) => {
-    const info = page.imageinfo[0];
-    const meta = info.extmetadata || {};
-    return {
-      title: page.title.replace(/^File:/, "").replace(/\.[a-zA-Z]+$/, ""),
-      thumbUrl: info.thumburl || info.url,
-      fullUrl: info.url,
-      descriptionUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, "_"))}`,
-      artist: stripHtml(meta.Artist?.value),
-      licenseShortName: meta.LicenseShortName?.value,
-    };
-  });
+function toDestinationImage(page) {
+  const info = page.imageinfo[0];
+  const meta = info.extmetadata || {};
+  return {
+    title: page.title.replace(/^File:/, "").replace(/\.[a-zA-Z]+$/, ""),
+    thumbUrl: info.thumburl || info.url,
+    fullUrl: info.url,
+    descriptionUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, "_"))}`,
+    artist: stripHtml(meta.Artist?.value),
+    licenseShortName: meta.LicenseShortName?.value,
+  };
+}
+
+/**
+ * Returns up to `count` real, iconic photos for a destination, each with a
+ * thumbnail URL suitable for both display and client-side palette extraction.
+ *
+ * Biases toward scenic/landscape shots first (more editorial, less likely to
+ * be a random document scan or portrait), falling back to a plain place-name
+ * search if that's too narrow for a given destination.
+ */
+export async function getDestinationImages(location, count = 3) {
+  const place = [location.name, location.country].filter(Boolean).join(" ");
+
+  const scenic = await searchUsableImages(`${place} landscape OR scenery OR skyline`);
+  if (scenic.length >= count) {
+    return scenic.slice(0, count).map(toDestinationImage);
+  }
+
+  const broad = await searchUsableImages(place);
+  const seen = new Set(scenic.map((p) => p.pageid));
+  const merged = [...scenic, ...broad.filter((p) => !seen.has(p.pageid))];
+
+  return merged.slice(0, count).map(toDestinationImage);
 }

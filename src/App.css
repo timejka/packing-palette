@@ -133,7 +133,6 @@
 }
 
 .trip-form::before,
-.pass-card::before,
 .packing-card::before {
   content: "";
   position: absolute;
@@ -144,6 +143,25 @@
   border-radius: 24px 24px 0 0;
   background: linear-gradient(90deg, var(--pink-deep), var(--purple-deep), var(--gold));
   opacity: 0.85;
+}
+
+/* the pass's ribbon takes its colors from the cover photo's own palette when
+   one has been extracted (see TravelPass), falling back to the house accents */
+.pass-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(
+    90deg,
+    var(--accent-1, var(--pink-deep)),
+    var(--accent-2, var(--purple-deep)),
+    var(--accent-3, var(--gold))
+  );
+  opacity: 0.9;
 }
 
 .trip-form-head h2 {
@@ -337,9 +355,9 @@
   width: 62px;
   height: 62px;
   border-radius: 50%;
-  border: 1.5px dashed var(--pink-deep);
+  border: 1.5px dashed var(--accent-1, var(--pink-deep));
   background: rgba(255, 255, 255, 0.35);
-  color: var(--pink-deep);
+  color: var(--accent-1, var(--pink-deep));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -356,7 +374,7 @@
   top: -10px;
   width: 14px;
   height: 18px;
-  background: var(--pink-deep);
+  background: var(--accent-1, var(--pink-deep));
   border-radius: 65% 65% 40% 40%;
 }
 
@@ -385,6 +403,7 @@
 
 .pass-hero {
   position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 
 .pass-hero img {
@@ -393,6 +412,29 @@
   object-fit: cover;
   display: block;
   background: var(--surface-alt);
+  filter: saturate(1.08) contrast(1.03);
+}
+
+/* tints the cover photo with a color pulled from its own extracted
+   palette, so the photo and the accents around it read as one piece */
+.pass-hero-tint {
+  position: absolute;
+  inset: 0;
+  background: var(--accent-2, var(--purple-deep));
+  opacity: 0.22;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+/* editorial scrim: darkens the lower third for the caption and a bit
+   of magazine-cover depth, plus a gentle vignette at the top */
+.pass-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(10, 6, 16, 0.55) 0%, transparent 48%),
+    radial-gradient(130% 90% at 50% 0%, transparent 60%, rgba(8, 5, 12, 0.2) 100%);
+  pointer-events: none;
 }
 
 .pass-hero-caption {
@@ -403,13 +445,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(24, 17, 27, 0.72);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--ink);
   font-size: 12px;
   padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(36, 31, 26, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   text-decoration: none;
 }
 
@@ -539,7 +582,7 @@
   position: absolute;
   top: 8px;
   left: 8px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(24, 17, 27, 0.72);
   color: var(--ink-soft);
   font-size: 10px;
   letter-spacing: 0.08em;
