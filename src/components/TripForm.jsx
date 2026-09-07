@@ -75,6 +75,7 @@ export default function TripForm({ trip, onChange, onSubmit, formError, submitti
               type="button"
               key={opt.id}
               className={`chip ${trip.activities.includes(opt.id) ? "chip-active" : ""}`}
+              aria-pressed={trip.activities.includes(opt.id)}
               onClick={() => toggleActivity(opt.id)}
             >
               {opt.label}

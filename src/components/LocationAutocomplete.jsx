@@ -10,6 +10,8 @@ export default function LocationAutocomplete({ value, onSelect, id = "location" 
   const [error, setError] = useState(null);
   const containerRef = useRef(null);
   const debounceRef = useRef(null);
+  const listboxId = `${id}-listbox`;
+  const optionId = (i) => `${id}-option-${i}`;
 
   useEffect(() => {
     setQuery(value?.label || "");
@@ -79,14 +81,18 @@ export default function LocationAutocomplete({ value, onSelect, id = "location" 
     }
   }
 
+  const listVisible = open && (loading || options.length > 0 || error);
+
   return (
     <div className="autocomplete" ref={containerRef}>
       <input
         id={id}
         type="text"
         role="combobox"
-        aria-expanded={open}
+        aria-expanded={listVisible}
         aria-autocomplete="list"
+        aria-controls={listboxId}
+        aria-activedescendant={highlighted >= 0 ? optionId(highlighted) : undefined}
         autoComplete="off"
         placeholder="e.g. Cape Town, South Africa"
         value={query}
@@ -96,18 +102,29 @@ export default function LocationAutocomplete({ value, onSelect, id = "location" 
         required
       />
       {value && (
-        <span className="autocomplete-check" title="Location confirmed">
+        <span className="autocomplete-check" title="Location confirmed" aria-hidden="true">
           ✓
         </span>
       )}
-      {open && (loading || options.length > 0 || error) && (
-        <ul className="autocomplete-list">
-          {loading && <li className="autocomplete-status">Searching…</li>}
-          {!loading && error && <li className="autocomplete-status">{error}</li>}
+      {listVisible && (
+        <ul className="autocomplete-list" id={listboxId} role="listbox">
+          {loading && (
+            <li className="autocomplete-status" role="presentation" aria-live="polite">
+              Searching…
+            </li>
+          )}
+          {!loading && error && (
+            <li className="autocomplete-status" role="presentation" aria-live="polite">
+              {error}
+            </li>
+          )}
           {!loading &&
             options.map((opt, i) => (
               <li
                 key={opt.id}
+                id={optionId(i)}
+                role="option"
+                aria-selected={i === highlighted}
                 className={i === highlighted ? "autocomplete-option active" : "autocomplete-option"}
                 onMouseDown={() => selectOption(opt)}
                 onMouseEnter={() => setHighlighted(i)}

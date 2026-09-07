@@ -42,11 +42,11 @@ export default function App() {
     const days = daysBetween(t.startDate, t.endDate);
 
     const weatherPromise = getWeatherSummary(t.location, t.startDate, t.endDate).catch((err) => {
-      console.error("Live weather failed, using fallback estimate:", err);
+      console.warn("Live weather unavailable, using fallback estimate:", err);
       return getFallbackWeatherEstimate(t.location, t.startDate, t.endDate);
     });
     const imagesPromise = getDestinationImages(t.location).catch((err) => {
-      console.error("Destination image search failed:", err);
+      console.warn("Destination image search unavailable:", err);
       return [];
     });
 
