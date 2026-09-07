@@ -16,8 +16,8 @@ export default function WeatherSummary({ weather }) {
       <p><strong>Conditions:</strong> {weather.condition}</p>
       <p><strong>Rain:</strong> {weather.rain}</p>
       <p className="weather-notes">{weather.notes}</p>
-      {weather.isEstimate && (
-        <p className="estimate-flag">Estimated from seasonal patterns — no curated data for this destination yet.</p>
+      {weather.source === "fallback-estimate" && (
+        <p className="estimate-flag">Live weather data was unavailable — this is a rough seasonal guess.</p>
       )}
     </div>
   );

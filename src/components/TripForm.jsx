@@ -1,6 +1,7 @@
+import LocationAutocomplete from "./LocationAutocomplete";
 import { ACTIVITY_OPTIONS } from "../lib/packingList";
 
-export default function TripForm({ trip, onChange, onSubmit }) {
+export default function TripForm({ trip, onChange, onSubmit, formError, submitting }) {
   const toggleActivity = (id) => {
     const next = trip.activities.includes(id)
       ? trip.activities.filter((a) => a !== id)
@@ -21,13 +22,10 @@ export default function TripForm({ trip, onChange, onSubmit }) {
     >
       <div className="field">
         <label htmlFor="location">Where are you going?</label>
-        <input
+        <LocationAutocomplete
           id="location"
-          type="text"
-          placeholder="e.g. Kruger National Park, South Africa"
           value={trip.location}
-          onChange={(e) => onChange({ ...trip, location: e.target.value })}
-          required
+          onSelect={(location) => onChange({ ...trip, location })}
         />
       </div>
 
@@ -71,8 +69,10 @@ export default function TripForm({ trip, onChange, onSubmit }) {
         </div>
       </div>
 
-      <button type="submit" className="submit-btn">
-        Build my packing list
+      {formError && <p className="error">{formError}</p>}
+
+      <button type="submit" className="submit-btn" disabled={submitting}>
+        {submitting ? "Building your list…" : "Build my packing list"}
       </button>
     </form>
   );
