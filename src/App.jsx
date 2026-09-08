@@ -12,21 +12,21 @@ import { generatePackingList } from "./lib/packingList";
 import "./App.css";
 
 const DEFAULT_LOCATION = {
-  id: "tirana-albania",
-  name: "Tirana",
+  id: "durres-albania",
+  name: "Durrës",
   country: "Albania",
-  admin1: "Tirana County",
-  latitude: 41.3275,
-  longitude: 19.8187,
-  population: 500000,
-  featureCode: "PPLC",
-  label: "Tirana, Albania",
+  admin1: "Durrës County",
+  latitude: 41.3231,
+  longitude: 19.4414,
+  population: 113249,
+  featureCode: "PPLA",
+  label: "Durrës, Albania",
 };
 
 const DEFAULT_TRIP = {
   location: DEFAULT_LOCATION,
-  startDate: "2027-07-16",
-  endDate: "2027-07-31",
+  startDate: "2026-09-10",
+  endDate: "2026-09-17",
   activities: ["outdoors"],
 };
 
