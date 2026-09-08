@@ -28,6 +28,8 @@ export async function searchLocations(query) {
       latitude: r.latitude,
       longitude: r.longitude,
       timezone: r.timezone,
+      population: typeof r.population === "number" ? r.population : undefined,
+      featureCode: r.feature_code,
     };
     location.label = formatLocationLabel(location);
     return location;

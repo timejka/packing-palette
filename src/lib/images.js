@@ -53,13 +53,52 @@ function toDestinationImage(page) {
   };
 }
 
+// GeoNames feature codes (surfaced by Open-Meteo's geocoding API as
+// `feature_code`) that clearly identify a natural/protected feature rather
+// than a populated place. Deliberately narrow to codes we're confident
+// about — an unrecognized code just falls through to the population-based
+// guess below rather than risking a wrong nature/city call.
+const NATURE_FEATURE_CODES = /^(PRK|RESV|FRST|MT|MTS|VAL|CNYN|DSRT|ISL|ISLS|LK|RF)/;
+
+const CITY_POPULATION_THRESHOLD = 300_000;
+
+/**
+ * Picks a scenery descriptor to bias the Commons search toward photos that
+ * actually match the destination's character, instead of a single
+ * one-size-fits-all "landscape" (which skews every result green/blue, even
+ * for dense cities) or a bare OR of alternatives (which breaks the AND
+ * grouping — see the warning in getDestinationImages below).
+ *
+ * Uses whatever geocoding data is available (feature_code, population) to
+ * classify the destination:
+ *   - a recognized park/mountain/island/etc. feature code -> "landscape"
+ *   - a big population -> "skyline"
+ *   - a smaller-but-known population -> "landmarks"
+ *   - nothing to go on (e.g. the hardcoded default trip location, or a
+ *     geocoding result missing this data) -> "landscape", since unranked
+ *     places are more often a natural feature than a city GeoNames tracks
+ *     precisely.
+ */
+function pickSceneryTerm(location) {
+  if (NATURE_FEATURE_CODES.test(location.featureCode || "")) {
+    return "landscape";
+  }
+  if (typeof location.population === "number") {
+    if (location.population >= CITY_POPULATION_THRESHOLD) return "skyline";
+    if (location.population > 0) return "landmarks";
+  }
+  return "landscape";
+}
+
 /**
  * Returns up to `count` real, iconic photos for a destination, each with a
  * thumbnail URL suitable for both display and client-side palette extraction.
  *
- * Biases toward scenic/landscape shots first (more editorial, less likely to
- * be a random document scan or portrait), falling back to a plain place-name
- * search if that's too narrow for a given destination.
+ * Biases toward scenic shots first (more editorial, less likely to be a
+ * random document scan or portrait), using a descriptor picked for the
+ * destination's actual character (see pickSceneryTerm) rather than always
+ * "landscape". Falls back to a plain place-name search if that's too narrow
+ * for a given destination.
  *
  * Both queries rely on Commons search (CirrusSearch) treating bare,
  * space-separated terms as AND — every term must match. Do NOT introduce a
@@ -76,8 +115,9 @@ function toDestinationImage(page) {
  */
 export async function getDestinationImages(location, count = 3) {
   const place = [location.name, location.country].filter(Boolean).join(" ");
+  const sceneryTerm = pickSceneryTerm(location);
 
-  const scenic = await searchUsableImages(`${place} landscape`);
+  const scenic = await searchUsableImages(`${place} ${sceneryTerm}`);
   if (scenic.length >= count) {
     return scenic.slice(0, count).map(toDestinationImage);
   }
