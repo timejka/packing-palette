@@ -30,6 +30,7 @@ const QUANTITY_RESOLVERS = {
   swimsuits: ({ days, activities }) =>
     anySelected(activities, ["beach", "pool_resort", "spa_wellness"]) ? days : 0,
   dayOutfits: ({ days }) => days,
+  dresses: ({ days }) => Math.max(1, Math.round((days / 7) * 2)),
   nightOutfits: ({ nights, activities }) =>
     Math.min(2 + countSelected(activities, ["nightlife", "elegant_event"]), nights),
 };

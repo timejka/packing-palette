@@ -11,7 +11,9 @@
       { "id": "underwear", "name": "Underwear", "qty": "days + 2" },
       { "id": "socks", "name": "Socks", "qty": "days" },
       { "id": "sleepwear", "name": "Sleepwear", "qty": 1 },
-      { "id": "day_outfit", "name": "Day outfit", "qty": "dayOutfits" },
+      { "id": "top", "name": "Top", "qty": "dayOutfits" },
+      { "id": "bottom", "name": "Bottom", "qty": "dayOutfits" },
+      { "id": "dress", "name": "Dress", "qty": "dresses" },
       { "id": "night_outfit", "name": "Night outfit", "qty": "nightOutfits" }
     ],
     "beauty": [
@@ -165,6 +167,7 @@
     "travelOutfits": "days <= 3 ? 1 : 2",
     "swimsuits": "anySelected(['beach','pool_resort','spa_wellness']) ? days : 0",
     "dayOutfits": "days",
+    "dresses": "max(1, round(days / 7 * 2))",
     "dayOutfitSplit": "distribute dayOutfits evenly across selected categories where daytime === true; activities claim days, they never add days",
     "nightOutfits": "min(2 + countSelected(['nightlife','elegant_event']), nights)"
   }
