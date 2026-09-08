@@ -2,6 +2,9 @@
 // search API (no key required, CORS enabled via origin=*).
 // https://www.mediawiki.org/wiki/API:Search
 
+import { loadImageForExtraction, extractPalette } from "./colorExtraction";
+import { hexToHsl } from "./colorNaming";
+
 const ENDPOINT = "https://commons.wikimedia.org/w/api.php";
 
 const EXCLUDE_PATTERN =
@@ -40,7 +43,7 @@ async function searchUsableImages(query) {
   return pages.filter(isUsableImage).sort((a, b) => (a.index ?? 999) - (b.index ?? 999));
 }
 
-function toDestinationImage(page) {
+function toDestinationImage(page, palette) {
   const info = page.imageinfo[0];
   const meta = info.extmetadata || {};
   return {
@@ -50,51 +53,100 @@ function toDestinationImage(page) {
     descriptionUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, "_"))}`,
     artist: stripHtml(meta.Artist?.value),
     licenseShortName: meta.LicenseShortName?.value,
+    palette: palette && palette.length > 0 ? palette : undefined,
   };
 }
 
-// GeoNames feature codes (surfaced by Open-Meteo's geocoding API as
-// `feature_code`) that clearly identify a natural/protected feature rather
-// than a populated place. Deliberately narrow to codes we're confident
-// about — an unrecognized code just falls through to the population-based
-// guess below rather than risking a wrong nature/city call.
-const NATURE_FEATURE_CODES = /^(PRK|RESV|FRST|MT|MTS|VAL|CNYN|DSRT|ISL|ISLS|LK|RF)/;
+// How different two dominant colors need to be (circular hue degrees, or
+// lightness percentage points when hue is unreliable) to count as visually
+// distinct paint chips. Tuned to reject near-duplicate greens/blues without
+// being so strict that thin destinations can't ever fill 3 slots.
+const MIN_HUE_DISTANCE = 40;
+const MIN_LIGHTNESS_DISTANCE = 15;
 
-const CITY_POPULATION_THRESHOLD = 300_000;
+export function hueDistance(a, b) {
+  const d = Math.abs(a - b) % 360;
+  return d > 180 ? 360 - d : d;
+}
 
 /**
- * Picks a scenery descriptor to bias the Commons search toward photos that
- * actually match the destination's character, instead of a single
- * one-size-fits-all "landscape" (which skews every result green/blue, even
- * for dense cities) or a bare OR of alternatives (which breaks the AND
- * grouping — see the warning in getDestinationImages below).
- *
- * Uses whatever geocoding data is available (feature_code, population) to
- * classify the destination:
- *   - a recognized park/mountain/island/etc. feature code -> "landscape"
- *   - a big population -> "skyline"
- *   - a smaller-but-known population -> "landmarks"
- *   - nothing to go on (e.g. the hardcoded default trip location, or a
- *     geocoding result missing this data) -> "landscape", since unranked
- *     places are more often a natural feature than a city GeoNames tracks
- *     precisely.
+ * Whether `candidate` (an {h,l} from hexToHsl, or null if unknown) is
+ * distinct enough from every color already picked. A null/unknown color on
+ * either side is never treated as a collision — we'd rather show an
+ * un-color-checked image than silently drop it and undershoot `count`.
  */
-function pickSceneryTerm(location) {
-  if (NATURE_FEATURE_CODES.test(location.featureCode || "")) {
-    return "landscape";
+export function isColorDistinct(candidate, pickedColors) {
+  if (!candidate) return true;
+  return pickedColors.every((color) => {
+    if (!color) return true;
+    // Hue is noisy for near-black/near-white colors (barely any chroma to
+    // measure it from), so for those, lightness alone decides similarity.
+    const bothNearBlack = candidate.l < 12 && color.l < 12;
+    const bothNearWhite = candidate.l > 92 && color.l > 92;
+    if (bothNearBlack || bothNearWhite) {
+      return Math.abs(candidate.l - color.l) >= MIN_LIGHTNESS_DISTANCE;
+    }
+    const hueDiff = hueDistance(candidate.h, color.h);
+    const lightDiff = Math.abs(candidate.l - color.l);
+    return hueDiff >= MIN_HUE_DISTANCE || lightDiff >= MIN_LIGHTNESS_DISTANCE;
+  });
+}
+
+// Loads a candidate's thumbnail and extracts its palette client-side, same
+// as the display-time extraction (useImagePalette), so we can both (a)
+// check the dominant color for similarity against already-picked images and
+// (b) hand the finished palette to the UI to avoid extracting it twice.
+// Returns null if the image can't be loaded or the canvas gets tainted
+// (missing CORS headers) — callers treat that as "unknown color", not a
+// hard failure, so a candidate is never rejected just because we couldn't
+// analyze it.
+async function analyzeCandidate(page) {
+  const info = page.imageinfo[0];
+  const url = info.thumburl || info.url;
+  try {
+    const img = await loadImageForExtraction(url);
+    const palette = extractPalette(img, 4);
+    if (!palette.length) return null;
+    return { hsl: hexToHsl(palette[0]), palette };
+  } catch {
+    return null;
   }
-  if (typeof location.population === "number") {
-    if (location.population >= CITY_POPULATION_THRESHOLD) return "skyline";
-    if (location.population > 0) return "landmarks";
+}
+
+const ANALYZE_BATCH_SIZE = 8;
+
+// Walks `candidates` in relevance order, analyzing them in small parallel
+// batches (rather than one giant Promise.all, which would load every
+// candidate's image even after we already have enough picks) and greedily
+// keeping ones whose dominant color is distinct from every pick so far.
+// Anything skipped for being too similar is recorded in `skipped` so the
+// caller can fall back to it if strict diversity leaves us short.
+async function selectDiverseInto(candidates, picked, skipped, count) {
+  for (let i = 0; i < candidates.length && picked.length < count; i += ANALYZE_BATCH_SIZE) {
+    const batch = candidates.slice(i, i + ANALYZE_BATCH_SIZE);
+    const analyses = await Promise.all(batch.map(analyzeCandidate));
+    batch.forEach((page, idx) => {
+      if (picked.length >= count) return;
+      const analysis = analyses[idx];
+      const pickedColors = picked.map((p) => p.analysis?.hsl || null);
+      if (isColorDistinct(analysis?.hsl || null, pickedColors)) {
+        picked.push({ page, analysis });
+      } else {
+        skipped.push(page);
+      }
+    });
   }
-  return "landscape";
 }
 
 /**
  * Returns up to `count` real, iconic photos for a destination, each with a
- * thumbnail URL suitable for both display and client-side palette extraction.
+ * thumbnail URL suitable for display and a `palette` already extracted from
+ * it (see analyzeCandidate), biased toward scenic/landscape shots first —
+ * more editorial, less likely to be a random document scan, news photo, or
+ * unrelated building — falling back to a plain place-name search if that's
+ * too narrow for a given destination.
  *
- * Every query relies on Commons search (CirrusSearch) treating bare,
+ * Both queries rely on Commons search (CirrusSearch) treating bare,
  * space-separated terms as AND — every term must match. Do NOT introduce a
  * bare `OR` here: CirrusSearch breaks the implicit AND grouping at that
  * point, turning trailing terms into independent top-level clauses. E.g.
@@ -107,57 +159,34 @@ function pickSceneryTerm(location) {
  * scenery OR skyline)` — and that should be verified against the live API
  * before shipping, since query-string parsing quirks are easy to get wrong.
  *
- * Deliberately queries THREE different facets of the destination — an
- * iconic sight, an overall scenic/skyline shot, and street-level everyday
- * character — and takes at most one image per facet per pass (round-robin),
- * rather than taking the top 3 results of a single query. A single query's
- * top 3 tend to cluster around whichever one landmark ranks highest on
- * Commons, which is what made results feel repetitive/generic before. Each
- * facet term is chosen to match real, common Commons category conventions
- * ("Tourist attractions in X", "Streets in X") rather than travel-blog
- * phrasing like "things to see", which Commons file titles/categories don't
- * actually use and so wouldn't match well.
+ * On top of the query, results are filtered for color diversity: each
+ * candidate's dominant color is compared against the images already picked
+ * (isColorDistinct), so 3 photos that all happen to be dominated by the
+ * same green/blue don't all get picked just because they ranked highest.
+ * If a destination doesn't have enough color-distinct coverage to fill
+ * `count` this way, the most-similar candidates we skipped are used to fill
+ * the remaining slots rather than under-delivering images.
  */
 export async function getDestinationImages(location, count = 3) {
   const place = [location.name, location.country].filter(Boolean).join(" ");
-  const sceneryTerm = pickSceneryTerm(location);
 
-  const facetQueries = [`${place} tourist attraction`, `${place} ${sceneryTerm}`, `${place} street`];
-  const facetResults = await Promise.all(facetQueries.map((q) => searchUsableImages(q).catch(() => [])));
-
+  const scenic = await searchUsableImages(`${place} landscape`).catch(() => []);
   const picked = [];
-  const seen = new Set();
+  const skipped = [];
 
-  // Round-robin across facets: pass 0 takes each facet's top (most
-  // relevant) result, pass 1 takes each facet's second result if still
-  // short, and so on — so 3 distinct facets fill 3 distinct slots before
-  // any single facet is allowed to contribute a second image.
-  for (let rank = 0; picked.length < count; rank++) {
-    let addedThisPass = false;
-    for (const results of facetResults) {
-      if (picked.length >= count) break;
-      const candidate = results[rank];
-      if (candidate && !seen.has(candidate.pageid)) {
-        seen.add(candidate.pageid);
-        picked.push(candidate);
-        addedThisPass = true;
-      }
-    }
-    if (!addedThisPass) break; // every facet's results are exhausted
-  }
+  await selectDiverseInto(scenic, picked, skipped, count);
 
   if (picked.length < count) {
-    // Destination is thin on Commons coverage for all three facets —
-    // broaden to a plain, unbiased place-name search to fill the rest.
     const broad = await searchUsableImages(place).catch(() => []);
-    for (const page of broad) {
-      if (picked.length >= count) break;
-      if (!seen.has(page.pageid)) {
-        seen.add(page.pageid);
-        picked.push(page);
-      }
-    }
+    const seen = new Set(scenic.map((p) => p.pageid));
+    const fresh = broad.filter((p) => !seen.has(p.pageid));
+    await selectDiverseInto(fresh, picked, skipped, count);
   }
 
-  return picked.slice(0, count).map(toDestinationImage);
+  for (const page of skipped) {
+    if (picked.length >= count) break;
+    picked.push({ page, analysis: null });
+  }
+
+  return picked.slice(0, count).map((p) => toDestinationImage(p.page, p.analysis?.palette));
 }

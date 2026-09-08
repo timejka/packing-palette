@@ -18,8 +18,8 @@ export default function DestinationGallery({ images, fallbackPalette }) {
           No destination photos found — here's a palette estimated from the place name instead.
         </p>
         <div className="paint-chip-row">
-          {(fallbackPalette || []).map((hex) => (
-            <div className="paint-chip" key={hex}>
+          {(fallbackPalette || []).map((hex, i) => (
+            <div className="paint-chip" key={i}>
               <div className="paint-chip-color" style={{ backgroundColor: hex }} />
               <div className="paint-chip-label">
                 <span className="paint-chip-name">{nameForColor(hex)}</span>

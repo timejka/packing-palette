@@ -1,7 +1,7 @@
 // Gives a human-friendly name to an arbitrary hex color, derived from its
 // hue/saturation/lightness — used to label colors pulled out of a photo.
 
-function hexToHsl(hex) {
+export function hexToHsl(hex) {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
   const b = parseInt(hex.slice(5, 7), 16) / 255;

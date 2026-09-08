@@ -53,12 +53,16 @@ function medianCut(pixels, count) {
   while (buckets.length < count) {
     let splitIndex = -1;
     let splitChannel = 0;
-    let maxRange = -1;
+    let maxRange = 0;
 
     buckets.forEach((bucket, i) => {
       if (bucket.length < 2) return;
       const channel = widestChannel(bucket);
       const range = channelRange(bucket, channel);
+      // A bucket with zero range is a single solid color already — splitting
+      // it would just produce two buckets that average back to the same
+      // color, i.e. duplicate palette entries. Only split buckets that
+      // still have some actual color variation left.
       if (range > maxRange) {
         maxRange = range;
         splitIndex = i;

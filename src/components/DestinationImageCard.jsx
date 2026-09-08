@@ -2,7 +2,15 @@ import { useImagePalette } from "../hooks/useImagePalette";
 import { nameForColor } from "../lib/colorNaming";
 
 export default function DestinationImageCard({ image, index }) {
-  const { status, palette } = useImagePalette(image.thumbUrl, 4);
+  const hasPrecomputedPalette = Array.isArray(image.palette) && image.palette.length > 0;
+  // getDestinationImages already extracts each picked image's palette while
+  // choosing color-distinct photos — reuse it instead of loading and
+  // re-analyzing the same image a second time here. The hook is still
+  // called unconditionally (rules of hooks); passing it `null` just makes
+  // it a no-op when we already have what we need.
+  const extracted = useImagePalette(hasPrecomputedPalette ? null : image.thumbUrl, 4);
+  const status = hasPrecomputedPalette ? "ready" : extracted.status;
+  const palette = hasPrecomputedPalette ? image.palette : extracted.palette;
 
   return (
     <figure className="specimen">
@@ -17,8 +25,8 @@ export default function DestinationImageCard({ image, index }) {
       {status === "error" && <p className="specimen-status">no colors extracted</p>}
       {status === "ready" && (
         <div className="paint-chip-row">
-          {palette.map((hex) => (
-            <div className="paint-chip" key={hex}>
+          {palette.map((hex, i) => (
+            <div className="paint-chip" key={i}>
               <div className="paint-chip-color" style={{ backgroundColor: hex }} />
               <div className="paint-chip-label">
                 <span className="paint-chip-name">{nameForColor(hex)}</span>
