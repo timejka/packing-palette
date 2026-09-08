@@ -1,5 +1,6 @@
 import LocationAutocomplete from "./LocationAutocomplete";
 import CatIcon from "./icons/CatIcon";
+import GhostWord from "./GhostWord";
 import { ACTIVITY_OPTIONS } from "../lib/packingList";
 
 export default function TripForm({ trip, onChange, onSubmit, formError, submitting }) {
@@ -21,8 +22,13 @@ export default function TripForm({ trip, onChange, onSubmit, formError, submitti
         if (!dateError) onSubmit();
       }}
     >
-      <div className="trip-form-head">
-        <span className="eyebrow">Plan a trip</span>
+      <div className="trip-form-head section-head">
+        <GhostWord word="TRIP" />
+        <div className="section-head-rule">
+          <span className="eyebrow">
+            <span className="asterisk">* </span>Plan a trip
+          </span>
+        </div>
         <h2>Where to, and when?</h2>
       </div>
 

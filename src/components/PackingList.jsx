@@ -1,5 +1,6 @@
 import { useState } from "react";
-import PawIcon from "./icons/PawIcon";
+import HandCheckIcon from "./icons/HandCheckIcon";
+import GhostWord from "./GhostWord";
 
 export default function PackingList({ categories }) {
   const [checked, setChecked] = useState({});
@@ -14,8 +15,13 @@ export default function PackingList({ categories }) {
   return (
     <div className="packing-card">
       <div className="packing-header">
-        <div>
-          <span className="eyebrow">Field guide</span>
+        <div className="section-head">
+          <GhostWord word="LIST" />
+          <div className="section-head-rule">
+            <span className="eyebrow">
+              <span className="asterisk">* </span>Field guide
+            </span>
+          </div>
           <h2>Packing list</h2>
         </div>
         <span className="packing-progress">
@@ -36,7 +42,7 @@ export default function PackingList({ categories }) {
                   <label>
                     <span className="checkbox-shell">
                       <input type="checkbox" checked={!!checked[key]} onChange={() => toggle(key)} />
-                      <PawIcon className="paw-mark" />
+                      <HandCheckIcon className="hand-check-mark" />
                     </span>
                     <span className={`item-label ${checked[key] ? "item-checked" : ""}`}>{item.item}</span>
                     <span className="item-qty">×{item.qty}</span>

@@ -3,6 +3,7 @@ import TripForm from "./components/TripForm";
 import TravelPass from "./components/TravelPass";
 import PackingList from "./components/PackingList";
 import StarField from "./components/StarField";
+import RunningCat from "./components/RunningCat";
 import CatIcon from "./components/icons/CatIcon";
 import { getWeatherSummary, getFallbackWeatherEstimate } from "./lib/weather";
 import { getDestinationImages } from "./lib/images";
@@ -86,6 +87,7 @@ export default function App() {
   return (
     <>
       <StarField />
+      <RunningCat />
       <div className="app">
         <header className="app-header">
           <span className="eyebrow">A field guide to packing</span>

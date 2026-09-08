@@ -1,7 +1,16 @@
+import GhostWord from "./GhostWord";
+
 export default function WeatherSummary({ weather }) {
   return (
     <div className="weather-panel">
-      <span className="eyebrow">Weather</span>
+      <div className="section-head">
+        <GhostWord word="WEATHER" />
+        <div className="section-head-rule">
+          <span className="eyebrow">
+            <span className="asterisk">* </span>Weather
+          </span>
+        </div>
+      </div>
       <div className="weather-grid">
         <div className="weather-field">
           <span className="field-label">Day</span>

@@ -1,40 +1,45 @@
 :root {
-  /* page + surfaces — dark palette, used regardless of system preference */
-  --bg-top: #241a2a;
-  --bg-mid: #2c1f32;
-  --bg-bottom: #201621;
-  --surface: rgba(45, 34, 51, 0.62);
-  --surface-solid: #2a1f30;
-  --surface-alt: rgba(255, 255, 255, 0.06);
-  --line: rgba(230, 200, 220, 0.16);
-  --line-soft: rgba(230, 200, 220, 0.1);
-  --glass-highlight: rgba(255, 255, 255, 0.08);
-  --star-color: #e8cd7c;
+  /* Strict palette: one pink, one green, one cream, plus black ink.
+     Tonal variants below are tints/shades of those same four — never a
+     fifth hue. The destination photos (and their extracted paint chips)
+     are the one deliberate exception: real, variable, most-saturated. */
+  --pink: #ff2f87;
+  --pink-light: #ffd8ea;
+  --green: #3fa34d;
+  --green-light: #d9f0dc;
+  --cream: #f6ecd9;
+  --cream-card: #fffbf1;
+  --cream-shade: #e4d5b4;
+  --ink: #17130f;
+  --ink-soft: rgba(23, 19, 15, 0.62);
+  --ink-faint: rgba(23, 19, 15, 0.4);
 
-  /* ink */
-  --ink: #f3ecf6;
-  --ink-soft: #c2b4c9;
-  --ink-faint: #8a7d92;
+  --star-color: var(--ink);
+  --star-opacity: 0.16;
 
-  /* expressive-but-cohesive accents, each with a deeper/brighter working tone */
-  --pink: #4a2c3c;
-  --pink-deep: #e895b8;
-  --purple: #3a3049;
-  --purple-deep: #c3a6e6;
-  --sage: #29331f;
-  --sage-deep: #9ecb99;
-  --gold: #d9b866;
-  --gold-soft: #4a3d24;
+  /* pearlescent chrome — ONLY the primary button and the luggage tag */
+  --chrome: linear-gradient(
+    120deg,
+    #ffffff 0%,
+    #ffd8ea 14%,
+    #ffffff 28%,
+    #d9f0dc 42%,
+    #ffffff 58%,
+    rgba(23, 19, 15, 0.16) 72%,
+    #ffffff 86%,
+    #ffd8ea 100%
+  );
 
-  --shadow-quiet:
-    0 1px 1px rgba(0, 0, 0, 0.25), 0 18px 44px -12px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --paper-shadow: 5px 5px 0 var(--ink);
+  --paper-shadow-sm: 3px 3px 0 var(--ink);
 
   --serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --hand: "Caveat", "Segoe Script", cursive;
 
   font: 16px/1.5 var(--sans);
-  color-scheme: dark;
+  color-scheme: light;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -50,14 +55,14 @@ html, body {
 }
 
 body {
-  background: linear-gradient(165deg, var(--bg-top) 0%, var(--bg-mid) 55%, var(--bg-bottom) 100%);
+  background: var(--cream);
 }
 
 h1, h2, h3 {
   font-family: var(--serif);
   color: var(--ink);
   margin: 0;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 p {
@@ -65,10 +70,44 @@ p {
 }
 
 .eyebrow {
-  font-family: var(--sans);
+  font-family: var(--mono);
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--ink);
+}
+
+/* the asterisk motif, used as a small recurring accent next to eyebrows */
+.asterisk {
+  color: var(--pink);
+  font-family: var(--sans);
+}
+
+/* a large, low-opacity repeated wordmark sitting behind a section heading.
+   Purely decorative and must never carry meaning of its own. */
+.ghost-word {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 64px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

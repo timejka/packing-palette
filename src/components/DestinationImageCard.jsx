@@ -13,22 +13,20 @@ export default function DestinationImageCard({ image, index }) {
           {image.title}
         </a>
       </figcaption>
-      {status === "loading" && <p className="specimen-status">Extracting colors…</p>}
-      {status === "error" && <p className="specimen-status">No colors extracted.</p>}
+      {status === "loading" && <p className="specimen-status">extracting colors…</p>}
+      {status === "error" && <p className="specimen-status">no colors extracted</p>}
       {status === "ready" && (
-        <>
-          <div className="swatch-strip swatch-strip-sm">
-            {palette.map((hex) => (
-              <div
-                className="swatch-bar"
-                key={hex}
-                style={{ backgroundColor: hex }}
-                title={`${nameForColor(hex)} — ${hex}`}
-              />
-            ))}
-          </div>
-          <p className="specimen-color-names">{palette.map(nameForColor).join(" · ")}</p>
-        </>
+        <div className="paint-chip-row">
+          {palette.map((hex) => (
+            <div className="paint-chip" key={hex}>
+              <div className="paint-chip-color" style={{ backgroundColor: hex }} />
+              <div className="paint-chip-label">
+                <span className="paint-chip-name">{nameForColor(hex)}</span>
+                <span className="paint-chip-hex">{hex}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </figure>
   );
