@@ -94,13 +94,7 @@ function pickSceneryTerm(location) {
  * Returns up to `count` real, iconic photos for a destination, each with a
  * thumbnail URL suitable for both display and client-side palette extraction.
  *
- * Biases toward scenic shots first (more editorial, less likely to be a
- * random document scan or portrait), using a descriptor picked for the
- * destination's actual character (see pickSceneryTerm) rather than always
- * "landscape". Falls back to a plain place-name search if that's too narrow
- * for a given destination.
- *
- * Both queries rely on Commons search (CirrusSearch) treating bare,
+ * Every query relies on Commons search (CirrusSearch) treating bare,
  * space-separated terms as AND — every term must match. Do NOT introduce a
  * bare `OR` here: CirrusSearch breaks the implicit AND grouping at that
  * point, turning trailing terms into independent top-level clauses. E.g.
@@ -112,19 +106,58 @@ function pickSceneryTerm(location) {
  * required on every branch, e.g. `+"Seoul" +"South Korea" (landscape OR
  * scenery OR skyline)` — and that should be verified against the live API
  * before shipping, since query-string parsing quirks are easy to get wrong.
+ *
+ * Deliberately queries THREE different facets of the destination — an
+ * iconic sight, an overall scenic/skyline shot, and street-level everyday
+ * character — and takes at most one image per facet per pass (round-robin),
+ * rather than taking the top 3 results of a single query. A single query's
+ * top 3 tend to cluster around whichever one landmark ranks highest on
+ * Commons, which is what made results feel repetitive/generic before. Each
+ * facet term is chosen to match real, common Commons category conventions
+ * ("Tourist attractions in X", "Streets in X") rather than travel-blog
+ * phrasing like "things to see", which Commons file titles/categories don't
+ * actually use and so wouldn't match well.
  */
 export async function getDestinationImages(location, count = 3) {
   const place = [location.name, location.country].filter(Boolean).join(" ");
   const sceneryTerm = pickSceneryTerm(location);
 
-  const scenic = await searchUsableImages(`${place} ${sceneryTerm}`);
-  if (scenic.length >= count) {
-    return scenic.slice(0, count).map(toDestinationImage);
+  const facetQueries = [`${place} tourist attraction`, `${place} ${sceneryTerm}`, `${place} street`];
+  const facetResults = await Promise.all(facetQueries.map((q) => searchUsableImages(q).catch(() => [])));
+
+  const picked = [];
+  const seen = new Set();
+
+  // Round-robin across facets: pass 0 takes each facet's top (most
+  // relevant) result, pass 1 takes each facet's second result if still
+  // short, and so on — so 3 distinct facets fill 3 distinct slots before
+  // any single facet is allowed to contribute a second image.
+  for (let rank = 0; picked.length < count; rank++) {
+    let addedThisPass = false;
+    for (const results of facetResults) {
+      if (picked.length >= count) break;
+      const candidate = results[rank];
+      if (candidate && !seen.has(candidate.pageid)) {
+        seen.add(candidate.pageid);
+        picked.push(candidate);
+        addedThisPass = true;
+      }
+    }
+    if (!addedThisPass) break; // every facet's results are exhausted
   }
 
-  const broad = await searchUsableImages(place);
-  const seen = new Set(scenic.map((p) => p.pageid));
-  const merged = [...scenic, ...broad.filter((p) => !seen.has(p.pageid))];
+  if (picked.length < count) {
+    // Destination is thin on Commons coverage for all three facets —
+    // broaden to a plain, unbiased place-name search to fill the rest.
+    const broad = await searchUsableImages(place).catch(() => []);
+    for (const page of broad) {
+      if (picked.length >= count) break;
+      if (!seen.has(page.pageid)) {
+        seen.add(page.pageid);
+        picked.push(page);
+      }
+    }
+  }
 
-  return merged.slice(0, count).map(toDestinationImage);
+  return picked.slice(0, count).map(toDestinationImage);
 }
