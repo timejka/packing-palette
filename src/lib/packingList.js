@@ -1,164 +1,78 @@
-// Builds a categorized packing list with quantities based on trip length,
-// the weather summary, and any selected activities.
+// Builds a categorized packing list from a data-driven spec
+// (packingListData.json): a base list that's always included, a set of
+// "shared" items triggered by any of several activities (deduped so
+// selecting more than one trigger doesn't repeat a row), and per-activity
+// items that only show up for that one activity.
+//
+// Quantities are either a fixed number or a named formula resolved below —
+// see packingListData.json's own "quantityRules" section for the source
+// spec these mirror.
 
-export const ACTIVITY_OPTIONS = [
-  { id: "beach", label: "Beach" },
-  { id: "pool", label: "Pool & resort" },
-  { id: "city", label: "City sightseeing" },
-  { id: "daytrip", label: "Day trip" },
-  { id: "leisure", label: "Leisure" },
-  { id: "outdoors", label: "Outdoors" },
-  { id: "spa", label: "Spa & wellness" },
-  { id: "nightlife", label: "Nightlife" },
-  { id: "event", label: "Elegant event" },
-  { id: "workout", label: "Workout" },
-];
+import packingListData from "./packingListData.json" with { type: "json" };
 
-function launderEvery(days) {
-  // Assume laundry access on longer trips so quantities don't scale forever.
-  return days > 10 ? 7 : days;
+export const ACTIVITY_OPTIONS = Object.entries(packingListData.categories).map(([id, category]) => ({
+  id,
+  label: category.label,
+}));
+
+function anySelected(activities, ids) {
+  return ids.some((id) => activities.includes(id));
 }
 
-export function generatePackingList({ days, weather, activities = [] }) {
-  const cycle = launderEvery(days);
-  const cold = weather.lowMin < 10;
-  const hot = weather.highMax > 27;
-  const chilly = weather.lowMin < 16;
+function countSelected(activities, ids) {
+  return ids.filter((id) => activities.includes(id)).length;
+}
 
+const QUANTITY_RESOLVERS = {
+  travelOutfits: ({ days }) => (days <= 3 ? 1 : 2),
+  "days + 2": ({ days }) => days + 2,
+  days: ({ days }) => days,
+  swimsuits: ({ days, activities }) =>
+    anySelected(activities, ["beach", "pool_resort", "spa_wellness"]) ? days : 0,
+  dayOutfits: ({ days }) => days,
+  nightOutfits: ({ nights, activities }) =>
+    Math.min(2 + countSelected(activities, ["nightlife", "elegant_event"]), nights),
+};
+
+function resolveQty(qty, ctx) {
+  if (typeof qty === "number") return qty;
+  const resolve = QUANTITY_RESOLVERS[qty];
+  if (!resolve) {
+    console.warn(`Unknown packing quantity rule "${qty}", defaulting to 1`);
+    return 1;
+  }
+  return resolve(ctx);
+}
+
+function buildItems(specItems, ctx) {
+  return specItems.map(({ name, qty }) => ({ item: name, qty: resolveQty(qty, ctx) }));
+}
+
+const BASE_SECTION_LABELS = {
+  clothing: "Clothing",
+  beauty: "Beauty",
+  practical: "Practical",
+};
+
+export function generatePackingList({ days, activities = [] }) {
+  const ctx = { days, nights: Math.max(days - 1, 0), activities };
   const categories = [];
 
-  // Clothing — scales with trip length (capped by assumed laundry cycle)
-  const clothing = [
-    { item: "T-shirts / short-sleeve tops", qty: Math.min(cycle, days) },
-    { item: "Underwear", qty: days + 1 },
-    { item: "Socks (pairs)", qty: days + 1 },
-    { item: "Trousers / trekking pants", qty: Math.max(2, Math.ceil(cycle / 3)) },
-  ];
-  if (chilly) {
-    clothing.push({ item: "Long-sleeve shirts", qty: Math.max(2, Math.ceil(cycle / 2)) });
-    clothing.push({ item: "Fleece or warm mid-layer", qty: 2 });
+  for (const [key, items] of Object.entries(packingListData.base)) {
+    categories.push({ name: BASE_SECTION_LABELS[key] || key, items: buildItems(items, ctx) });
   }
-  if (cold) {
-    clothing.push({ item: "Warm jacket", qty: 1 });
-    clothing.push({ item: "Beanie / warm hat", qty: 1 });
-    clothing.push({ item: "Gloves", qty: 1 });
-    clothing.push({ item: "Thermal base layers", qty: 2 });
-  }
-  if (hot) {
-    clothing.push({ item: "Wide-brim sun hat", qty: 1 });
-    clothing.push({ item: "Shorts", qty: Math.max(2, Math.ceil(cycle / 3)) });
-  }
-  if (weather.rainy) {
-    clothing.push({ item: "Rain jacket", qty: 1 });
-  }
-  clothing.push({ item: "Comfortable walking shoes", qty: 1 });
-  clothing.push({ item: "Sleepwear", qty: Math.max(1, Math.ceil(days / 4)) });
-  categories.push({ name: "Clothing", items: clothing });
 
-  // Health & toiletries — flat items, not day-scaled beyond basics
-  const health = [
-    { item: "Toothbrush & toothpaste", qty: 1 },
-    { item: "Sunscreen (SPF 30+)", qty: 1 },
-    { item: "Insect repellent", qty: 1 },
-    { item: "Basic first-aid kit", qty: 1 },
-    { item: "Personal medication", qty: days },
-    { item: "Reusable water bottle", qty: 1 },
-  ];
-  categories.push({ name: "Health & toiletries", items: health });
+  const sharedMatched = packingListData.shared.filter((item) =>
+    item.triggers.some((trigger) => activities.includes(trigger))
+  );
+  if (sharedMatched.length > 0) {
+    categories.push({ name: "Activity essentials", items: buildItems(sharedMatched, ctx) });
+  }
 
-  // Electronics & documents
-  const electronics = [
-    { item: "Phone charger", qty: 1 },
-    { item: "Universal power adapter", qty: 1 },
-    { item: "Power bank", qty: 1 },
-    { item: "Passport & travel documents", qty: 1 },
-    { item: "Travel insurance details", qty: 1 },
-  ];
-  categories.push({ name: "Electronics & documents", items: electronics });
-
-  // Activity-specific gear. A few water-based activities share the base
-  // "Swimsuit" reminder, but every activity also contributes at least one
-  // item found nowhere else in the list.
-  const activityItems = [];
-  if (activities.includes("beach")) {
-    activityItems.push(
-      { item: "Swimsuit", qty: 2 },
-      { item: "Beach towel (quick-dry, sand-resistant)", qty: 1 },
-      { item: "Flip-flops", qty: 1 },
-    );
-  }
-  if (activities.includes("pool")) {
-    activityItems.push(
-      { item: "Swimsuit", qty: 2 },
-      { item: "Swim cover-up / kaftan", qty: 1 },
-      { item: "Pool slides", qty: 1 },
-    );
-  }
-  if (activities.includes("city")) {
-    activityItems.push(
-      { item: "Anti-theft crossbody bag", qty: 1 },
-      { item: "Offline maps or printed transit passes", qty: 1 },
-    );
-  }
-  if (activities.includes("daytrip")) {
-    activityItems.push(
-      { item: "Packable foldable tote bag", qty: 1 },
-      { item: "Reusable snack container", qty: 1 },
-      { item: "Printed tickets & reservations folder", qty: 1 },
-    );
-  }
-  if (activities.includes("leisure")) {
-    activityItems.push(
-      { item: "Paperback book or e-reader", qty: 1 },
-      { item: "Comfortable loungewear", qty: 2 },
-      { item: "Travel pillow", qty: 1 },
-    );
-  }
-  if (activities.includes("outdoors")) {
-    activityItems.push(
-      { item: "Multi-tool / pocket knife", qty: 1 },
-      { item: "Lightweight daypack", qty: 1 },
-      { item: "Compact rain poncho", qty: 1 },
-    );
-  }
-  if (activities.includes("spa")) {
-    activityItems.push(
-      { item: "Swimsuit", qty: 2 },
-      { item: "Lightweight robe or wrap", qty: 1 },
-      { item: "Reusable makeup remover pads", qty: 1 },
-    );
-  }
-  if (activities.includes("nightlife")) {
-    activityItems.push(
-      { item: "Going-out outfit", qty: Math.max(1, Math.ceil(days / 4)) },
-      { item: "Statement accessories (jewelry/clutch)", qty: 1 },
-      { item: "Blister plasters (for heels/dancing)", qty: 1 },
-    );
-  }
-  if (activities.includes("event")) {
-    activityItems.push(
-      { item: "Formal outfit (suit or gown)", qty: Math.max(1, Math.ceil(days / 5)) },
-      { item: "Dress shoes", qty: 1 },
-      { item: "Small clutch or evening bag", qty: 1 },
-    );
-  }
-  if (activities.includes("workout")) {
-    activityItems.push(
-      { item: "Workout / athletic wear", qty: Math.max(2, Math.ceil(days / 3)) },
-      { item: "Running shoes", qty: 1 },
-      { item: "Reusable gym towel", qty: 1 },
-    );
-  }
-  if (activityItems.length > 0) {
-    // A few activities (beach/pool/spa) share reminders like "Swimsuit" —
-    // dedupe by item name so selecting more than one doesn't repeat a row.
-    const seen = new Set();
-    const dedupedItems = activityItems.filter(({ item }) => {
-      if (seen.has(item)) return false;
-      seen.add(item);
-      return true;
-    });
-    categories.push({ name: "Activity gear", items: dedupedItems });
+  for (const activityId of activities) {
+    const category = packingListData.categories[activityId];
+    if (!category) continue;
+    categories.push({ name: category.label, items: buildItems(category.items, ctx) });
   }
 
   return categories;

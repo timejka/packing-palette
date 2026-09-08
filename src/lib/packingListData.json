@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "notes": "Merge order: base -> shared (deduped by id) -> category-only. Then apply quantityRules. See packingList.js for how qty formulas are resolved.",
+
+  "base": {
+    "clothing": [
+      { "id": "travel_outfit", "name": "Travel outfit", "qty": "travelOutfits" },
+      { "id": "leggings", "name": "Leggings", "qty": 1 },
+      { "id": "bathrobe", "name": "Bathrobe", "qty": 1 },
+      { "id": "long_sleeve_layer", "name": "Long sleeve layer", "qty": 1 },
+      { "id": "underwear", "name": "Underwear", "qty": "days + 2" },
+      { "id": "socks", "name": "Socks", "qty": "days" },
+      { "id": "sleepwear", "name": "Sleepwear", "qty": 1 },
+      { "id": "day_outfit", "name": "Day outfit", "qty": "dayOutfits" },
+      { "id": "night_outfit", "name": "Night outfit", "qty": "nightOutfits" }
+    ],
+    "beauty": [
+      { "id": "toothbrush", "name": "Toothbrush", "qty": 1 },
+      { "id": "toothpaste", "name": "Toothpaste", "qty": 1 },
+      { "id": "hair_comb", "name": "Hair comb", "qty": 1 },
+      { "id": "hair_ties", "name": "Hair ties", "qty": 1 },
+      { "id": "cleanser_foam", "name": "Facial cleanser foam", "qty": 1 },
+      { "id": "cleanser_oil", "name": "Facial cleanser oil", "qty": 1 },
+      { "id": "moisturiser", "name": "Moisturiser", "qty": 1 },
+      { "id": "facial_spf", "name": "Facial SPF", "qty": 1 },
+      { "id": "shampoo", "name": "Shampoo", "qty": 1 },
+      { "id": "conditioner", "name": "Conditioner", "qty": 1 },
+      { "id": "heat_protector", "name": "Heat protector", "qty": 1 },
+      { "id": "hair_oil", "name": "Hair oil / ends treatment", "qty": 1 },
+      { "id": "face_towel", "name": "Face towel", "qty": 1 },
+      { "id": "sheet_mask", "name": "Sheet face mask", "qty": 1 },
+      { "id": "deodorant", "name": "Deodorant", "qty": 1 }
+    ],
+    "practical": [
+      { "id": "phone_charger", "name": "Phone charger", "qty": 1 },
+      { "id": "medication", "name": "Medication", "qty": 1 },
+      { "id": "documents_cash", "name": "Documents and cash", "qty": 1 },
+      { "id": "laundry_bag", "name": "Laundry bag", "qty": 1 }
+    ]
+  },
+
+  "shared": [
+    { "id": "swimsuit", "name": "Swimsuit", "qty": "swimsuits", "triggers": ["beach", "pool_resort", "spa_wellness"] },
+    { "id": "slides", "name": "Pool slides", "qty": 1, "triggers": ["beach", "pool_resort", "spa_wellness"] },
+    { "id": "cover_up", "name": "Cover-up", "qty": 1, "triggers": ["beach", "pool_resort", "spa_wellness"] },
+    { "id": "body_spf", "name": "Body SPF", "qty": 1, "triggers": ["beach", "pool_resort", "outdoors"] },
+    { "id": "sunglasses", "name": "Sunglasses", "qty": 1, "triggers": ["beach", "pool_resort", "outdoors", "city_sightseeing"] },
+    { "id": "sun_hat", "name": "Sun hat", "qty": 1, "triggers": ["beach", "pool_resort", "outdoors"] },
+    { "id": "power_bank", "name": "Power bank", "qty": 1, "triggers": ["city_sightseeing", "day_trip", "outdoors", "workout"] },
+    { "id": "water_bottle", "name": "Refillable water bottle", "qty": 1, "triggers": ["city_sightseeing", "day_trip", "outdoors", "workout"] },
+    { "id": "trainers", "name": "Trainers", "qty": 1, "triggers": ["city_sightseeing", "outdoors", "workout"] },
+    { "id": "small_bag", "name": "Small bag", "qty": 1, "triggers": ["nightlife", "elegant_event"] },
+    { "id": "jewellery", "name": "Jewellery", "qty": 1, "triggers": ["nightlife", "elegant_event"] },
+    { "id": "blister_plasters", "name": "Blister plasters", "qty": 1, "triggers": ["city_sightseeing", "nightlife", "elegant_event"] }
+  ],
+
+  "categories": {
+    "beach": {
+      "label": "Beach",
+      "daytime": true,
+      "items": [
+        { "id": "beach_towel", "name": "Beach towel", "qty": 1 },
+        { "id": "beach_bag", "name": "Beach bag", "qty": 1 },
+        { "id": "after_sun", "name": "After-sun", "qty": 1 },
+        { "id": "waterproof_case", "name": "Waterproof phone case", "qty": 1 },
+        { "id": "wet_bag", "name": "Wet bag", "qty": 1 }
+      ]
+    },
+    "pool_resort": {
+      "label": "Pool & resort",
+      "daytime": true,
+      "items": [
+        { "id": "hair_claw", "name": "Hair claw", "qty": 1 },
+        { "id": "leave_in", "name": "Leave-in for chlorine", "qty": 1 },
+        { "id": "speaker", "name": "Portable speaker", "qty": 1 }
+      ]
+    },
+    "city_sightseeing": {
+      "label": "City sightseeing",
+      "daytime": true,
+      "items": [
+        { "id": "crossbody", "name": "Crossbody bag", "qty": 1 },
+        { "id": "umbrella", "name": "Compact umbrella", "qty": 1 }
+      ]
+    },
+    "day_trip": {
+      "label": "Day trip",
+      "daytime": true,
+      "items": [
+        { "id": "backpack", "name": "Small backpack", "qty": 1 },
+        { "id": "snacks", "name": "Snacks", "qty": 1 },
+        { "id": "small_notes", "name": "Cash in small notes", "qty": 1 },
+        { "id": "motion_sickness", "name": "Motion sickness tablets", "qty": 1 },
+        { "id": "spf_stick", "name": "Sunscreen stick", "qty": 1 }
+      ]
+    },
+    "leisure": {
+      "label": "Leisure",
+      "daytime": true,
+      "items": [
+        { "id": "loungewear", "name": "Loungewear", "qty": 1 },
+        { "id": "headphones", "name": "Headphones", "qty": 1 },
+        { "id": "book", "name": "Book or Kindle", "qty": 1 },
+        { "id": "journal", "name": "Journal", "qty": 1 }
+      ]
+    },
+    "outdoors": {
+      "label": "Outdoors",
+      "daytime": true,
+      "items": [
+        { "id": "grippy_shoes", "name": "Closed-toe shoes with grip", "qty": 1 },
+        { "id": "wicking_socks", "name": "Moisture-wicking socks", "qty": 2 },
+        { "id": "rain_shell", "name": "Rain shell", "qty": 1 },
+        { "id": "insect_repellent", "name": "Insect repellent", "qty": 1 },
+        { "id": "cap", "name": "Cap", "qty": 1 },
+        { "id": "first_aid", "name": "Mini first aid kit", "qty": 1 }
+      ]
+    },
+    "spa_wellness": {
+      "label": "Spa & wellness",
+      "daytime": true,
+      "items": [
+        { "id": "hair_turban", "name": "Hair turban", "qty": 1 },
+        { "id": "body_lotion", "name": "Body lotion", "qty": 1 },
+        { "id": "lip_balm", "name": "Lip balm", "qty": 1 },
+        { "id": "loose_outfit", "name": "Loose between-treatments outfit", "qty": 1 }
+      ]
+    },
+    "nightlife": {
+      "label": "Nightlife",
+      "daytime": false,
+      "items": [
+        { "id": "going_out_outfit", "name": "Going-out outfit", "qty": 1 },
+        { "id": "dressier_shoes", "name": "Dressier shoes", "qty": 1 },
+        { "id": "lipstick", "name": "Lipstick", "qty": 1 },
+        { "id": "makeup_remover", "name": "Makeup remover", "qty": 1 }
+      ]
+    },
+    "elegant_event": {
+      "label": "Elegant event",
+      "daytime": false,
+      "items": [
+        { "id": "formal_outfit", "name": "Formal outfit", "qty": 1 },
+        { "id": "heels", "name": "Heels", "qty": 1 },
+        { "id": "clutch", "name": "Clutch", "qty": 1 },
+        { "id": "shapewear", "name": "Shapewear", "qty": 1 },
+        { "id": "fashion_tape", "name": "Fashion tape", "qty": 1 },
+        { "id": "wrinkle_release", "name": "Wrinkle release", "qty": 1 },
+        { "id": "perfume", "name": "Perfume", "qty": 1 }
+      ]
+    },
+    "workout": {
+      "label": "Workout",
+      "daytime": false,
+      "items": [
+        { "id": "sports_bra", "name": "Sports bra", "qty": 2 },
+        { "id": "workout_top", "name": "Workout top", "qty": 2 },
+        { "id": "workout_socks", "name": "Workout socks", "qty": 2 },
+        { "id": "dry_bag", "name": "Dry bag for sweaty kit", "qty": 1 }
+      ]
+    }
+  },
+
+  "quantityRules": {
+    "travelOutfits": "days <= 3 ? 1 : 2",
+    "swimsuits": "anySelected(['beach','pool_resort','spa_wellness']) ? days : 0",
+    "dayOutfits": "days",
+    "dayOutfitSplit": "distribute dayOutfits evenly across selected categories where daytime === true; activities claim days, they never add days",
+    "nightOutfits": "min(2 + countSelected(['nightlife','elegant_event']), nights)"
+  }
+}
