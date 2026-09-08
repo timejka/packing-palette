@@ -1,5 +1,5 @@
 import { useState } from "react";
-import HandCheckIcon from "./icons/HandCheckIcon";
+import HeartIcon from "./icons/HeartIcon";
 import GhostWord from "./GhostWord";
 
 export default function PackingList({ categories }) {
@@ -42,7 +42,7 @@ export default function PackingList({ categories }) {
                   <label>
                     <span className="checkbox-shell">
                       <input type="checkbox" checked={!!checked[key]} onChange={() => toggle(key)} />
-                      <HandCheckIcon className="hand-check-mark" />
+                      <HeartIcon className="heart-check-mark" />
                     </span>
                     <span className={`item-label ${checked[key] ? "item-checked" : ""}`}>{item.item}</span>
                     <span className="item-qty">×{item.qty}</span>

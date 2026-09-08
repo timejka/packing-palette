@@ -1,6 +1,6 @@
-// A barely-there scatter of stars and asterisks across the page background
-// only — never over content. Positions are randomized once at module load,
-// not on every render.
+// A scatter of bright (but translucent) pink/yellow stars and asterisks
+// across the page background only — never over content. Positions are
+// randomized once at module load, not on every render.
 
 const MARK_COUNT = 42;
 
@@ -13,8 +13,9 @@ function makeMarks(count) {
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: 10 + Math.random() * 16,
-      opacity: 0.08 + Math.random() * 0.14,
+      opacity: 0.35 + Math.random() * 0.25,
       rotation: Math.random() * 70 - 35,
+      color: Math.random() < 0.5 ? "var(--star-pink)" : "var(--star-yellow)",
     });
   }
   return marks;
@@ -35,6 +36,7 @@ export default function StarField() {
               top: `${m.y}%`,
               fontSize: m.size,
               opacity: m.opacity,
+              color: m.color,
               transform: `rotate(${m.rotation}deg)`,
             }}
           >
@@ -51,6 +53,7 @@ export default function StarField() {
               width: m.size,
               height: m.size,
               opacity: m.opacity,
+              fill: m.color,
               transform: `rotate(${m.rotation}deg)`,
             }}
           >

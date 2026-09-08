@@ -14,8 +14,8 @@
   --ink-soft: rgba(23, 19, 15, 0.62);
   --ink-faint: rgba(23, 19, 15, 0.4);
 
-  --star-color: var(--ink);
-  --star-opacity: 0.16;
+  --star-pink: var(--pink);
+  --star-yellow: #ffd23f;
 
   /* pearlescent chrome — ONLY the primary button and the luggage tag */
   --chrome: linear-gradient(

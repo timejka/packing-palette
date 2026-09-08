@@ -92,13 +92,14 @@ export default function App() {
       <RunningCat />
       <div className="app">
         <header className="app-header">
-          <span className="eyebrow">A field guide to packing</span>
+          <span className="eyebrow">Kitten Candy's Packing Wizard 🐈‍⬛</span>
           <h1>
             <img src={catLogo} alt="" className="header-mark" />
             Packing Palette
           </h1>
           <p className="app-tagline">
-            Search a place, pick your dates — get the weather, the palette, and the list.
+            Search a place, pick your dates — get the weather, the palette, and a packing list
+            that changes based on the activities you choose.
           </p>
         </header>
 
