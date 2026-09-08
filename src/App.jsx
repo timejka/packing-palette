@@ -12,13 +12,15 @@ import { generatePackingList } from "./lib/packingList";
 import "./App.css";
 
 const DEFAULT_LOCATION = {
-  id: "kruger-national-park",
-  name: "Kruger National Park",
-  country: "South Africa",
-  admin1: "Mpumalanga",
-  latitude: -23.9884,
-  longitude: 31.5547,
-  label: "Kruger National Park, South Africa",
+  id: "tirana-albania",
+  name: "Tirana",
+  country: "Albania",
+  admin1: "Tirana County",
+  latitude: 41.3275,
+  longitude: 19.8187,
+  population: 500000,
+  featureCode: "PPLC",
+  label: "Tirana, Albania",
 };
 
 const DEFAULT_TRIP = {
