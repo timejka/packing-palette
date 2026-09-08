@@ -89,7 +89,8 @@
 }
 
 .header-mark {
-  color: var(--pink);
+  height: 38px;
+  width: auto;
   flex-shrink: 0;
 }
 

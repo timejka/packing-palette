@@ -4,7 +4,7 @@ import TravelPass from "./components/TravelPass";
 import PackingList from "./components/PackingList";
 import StarField from "./components/StarField";
 import RunningCat from "./components/RunningCat";
-import CatIcon from "./components/icons/CatIcon";
+import catLogo from "./assets/cat-logo.png";
 import { getWeatherSummary, getFallbackWeatherEstimate } from "./lib/weather";
 import { getDestinationImages } from "./lib/images";
 import { getFallbackPalette } from "./lib/palette";
@@ -94,7 +94,7 @@ export default function App() {
         <header className="app-header">
           <span className="eyebrow">A field guide to packing</span>
           <h1>
-            <CatIcon className="header-mark" size={30} />
+            <img src={catLogo} alt="" className="header-mark" />
             Packing Palette
           </h1>
           <p className="app-tagline">

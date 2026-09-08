@@ -10,11 +10,22 @@ const ENDPOINT = "https://commons.wikimedia.org/w/api.php";
 const EXCLUDE_PATTERN =
   /logo|icon|flag_of|locator|coat.?of.?arms|seal.?of|symbol|emblem|\bmap\b|signage|logotype|wordmark|favicon|banner/i;
 
+// Commons is full of historical/archival material shot or scanned in a
+// photo-like aspect ratio — old paintings, engravings, postage stamps — that
+// isUsableImage's mime/size/aspect checks don't catch since it's ordinary
+// JPEG/PNG. Matched against both the file title and its Categories metadata
+// (e.g. "Watercolours by Edward Lear|1848 paintings"), since a lot of these
+// don't spell it out in the title itself.
+const NON_PHOTO_PATTERN =
+  /painting|drawing|illustration|engrav|lithograph|etching|woodcut|watercolo?ur|sketch|\bstamp\b|postage|postcard|clip.?art|manuscript/i;
+
 function isUsableImage(page) {
   const info = page.imageinfo?.[0];
   if (!info || !info.width || !info.height) return false;
   if (!/^image\/(jpeg|png)$/.test(info.mime)) return false;
   if (EXCLUDE_PATTERN.test(page.title)) return false;
+  const categories = info.extmetadata?.Categories?.value || "";
+  if (NON_PHOTO_PATTERN.test(page.title) || NON_PHOTO_PATTERN.test(categories)) return false;
   if (info.width < 800 || info.height < 500) return false;
   const aspect = info.width / info.height;
   if (aspect > 2.4 || aspect < 0.4) return false;
@@ -141,23 +152,26 @@ async function selectDiverseInto(candidates, picked, skipped, count) {
 /**
  * Returns up to `count` real, iconic photos for a destination, each with a
  * thumbnail URL suitable for display and a `palette` already extracted from
- * it (see analyzeCandidate), biased toward scenic/landscape shots first —
- * more editorial, less likely to be a random document scan, news photo, or
- * unrelated building — falling back to a plain place-name search if that's
- * too narrow for a given destination.
+ * it (see analyzeCandidate).
  *
- * Both queries rely on Commons search (CirrusSearch) treating bare,
- * space-separated terms as AND — every term must match. Do NOT introduce a
- * bare `OR` here: CirrusSearch breaks the implicit AND grouping at that
- * point, turning trailing terms into independent top-level clauses. E.g.
- * `Seoul South Korea landscape OR scenery OR skyline` stops requiring "Seoul"
- * for the "skyline" branch, so it also matches any unrelated photo anywhere
- * on Commons whose title merely contains the word "skyline" (Prague,
- * Frankfurt, Jersey City, ...). If a future change wants an OR of
- * descriptors, it must be parenthesized *and* the place name must be
- * required on every branch, e.g. `+"Seoul" +"South Korea" (landscape OR
- * scenery OR skyline)` — and that should be verified against the live API
- * before shipping, since query-string parsing quirks are easy to get wrong.
+ * Deliberately a single plain place-name query (no "landscape"/"tourist
+ * attraction"/etc. bias term). Biased terms tried previously kept surfacing
+ * the wrong kind of Commons content for the term they matched — "landscape"
+ * pulled in old landscape *paintings* (Commons categorizes classical art by
+ * genre the same way it categorizes photos), "tourist attraction" and
+ * "street" pulled in unrelated news/protest photos. A plain query plus the
+ * isUsableImage/NON_PHOTO_PATTERN filtering above is the combination that's
+ * actually stayed reliable.
+ *
+ * Relies on Commons search (CirrusSearch) treating bare, space-separated
+ * terms as AND — every term must match. Do NOT introduce a bare `OR` into
+ * this query: CirrusSearch breaks the implicit AND grouping at that point,
+ * turning trailing terms into independent top-level clauses that no longer
+ * require the place name to match. If a future change wants an OR of
+ * descriptors, it must be parenthesized *and* the place name required on
+ * every branch, e.g. `+"Seoul" +"South Korea" (landscape OR skyline)` — and
+ * verified against the live API before shipping, since query-string parsing
+ * quirks are easy to get wrong.
  *
  * On top of the query, results are filtered for color diversity: each
  * candidate's dominant color is compared against the images already picked
@@ -170,18 +184,11 @@ async function selectDiverseInto(candidates, picked, skipped, count) {
 export async function getDestinationImages(location, count = 3) {
   const place = [location.name, location.country].filter(Boolean).join(" ");
 
-  const scenic = await searchUsableImages(`${place} landscape`).catch(() => []);
+  const candidates = await searchUsableImages(place).catch(() => []);
   const picked = [];
   const skipped = [];
 
-  await selectDiverseInto(scenic, picked, skipped, count);
-
-  if (picked.length < count) {
-    const broad = await searchUsableImages(place).catch(() => []);
-    const seen = new Set(scenic.map((p) => p.pageid));
-    const fresh = broad.filter((p) => !seen.has(p.pageid));
-    await selectDiverseInto(fresh, picked, skipped, count);
-  }
+  await selectDiverseInto(candidates, picked, skipped, count);
 
   for (const page of skipped) {
     if (picked.length >= count) break;
